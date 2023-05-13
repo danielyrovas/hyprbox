@@ -1,20 +1,18 @@
-FROM quay.io/toolbx-images/alpine-toolbox:edge
+# FROM quay.io/toolbx-images/archlinux-toolbox:latest
+FROM quay.io/toolbx-images/opensuse-toolbox:tumbleweed
 
 LABEL com.github.containers.toolbox="true" \
       usage="This image is meant to be used with the toolbox or distrobox command" \
       summary="A cloud-native terminal experience" \
-      maintainer="jorge.castro@gmail.com"
+      maintainer="Daniel Yrovas"
 
-COPY extra-packages /
-RUN apk update && \
-    apk upgrade && \
-    grep -v '^#' /extra-packages | xargs apk add
-RUN rm /extra-packages
+WORKDIR /build
+RUN git clone --recursive https://github.com/hyprwm/Hyprland hypr
 
-RUN   ln -fs /bin/sh /usr/bin/sh && \
-      ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/docker && \
-      ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/flatpak && \ 
-      ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/podman && \
-      ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/rpm-ostree && \
-      ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/transactional-update
-     
+COPY packages /
+RUN zypper --non-interactive dup && \
+    grep -v '^#' /packages | xargs zypper --non-interactive  install
+
+RUN rm /packages
+
+RUN cd hypr && make install
